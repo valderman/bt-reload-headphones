@@ -1,0 +1,11 @@
+Package: bt-reload-headphones
+Version: 0.1-1
+Section: base
+Priority: optional
+Architecture: all
+Depends: pulseaudio-utils (>= 10.0), pulseaudio-module-bluetooth (>= 10.0), bluez (>= 5.43), udev (>= 232), bash (>= 4.4)
+Maintainer: Anton Ekblad <anton@ekblad.cc>
+Description: workaround for BT headphones not switching over to A2DP
+ Disconnects and then reconnects any BT headset which doesn't immediately
+ switch over to A2DP when connected. Workaround for glitchy Sony
+ (and possibly others) headphones.

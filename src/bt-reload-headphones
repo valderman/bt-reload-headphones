@@ -1,0 +1,86 @@
+#!/bin/bash
+CONFIG=/etc/bt-reload-headphones.conf
+
+reconnect_device() {
+    bluetoothctl --timeout 5 disconnect $1
+    sleep 1
+    bluetoothctl --timeout 10 connect $1
+}
+
+is_on_list() {
+    for ITEM in $1 ; do
+        if [[ "$ITEM" == "$2" ]] ; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+is_blacklisted() {
+    is_on_list "$DEVICE_BLACKLIST" $1
+}
+
+is_whitelisted() {
+    is_on_list "$DEVICE_WHITELIST" $1
+}
+
+whitelist_exists() {
+    [[ "" != "$DEVICE_WHITELIST" ]]
+}
+
+is_headset() {
+    BTINFO=$(bluetoothctl info $1)
+    (echo $BTINFO | grep -q "UUID: Audio Sink") && (echo $BTINFO | grep -q "Icon: audio-card") && (echo $BTINFO | grep -q "Connected: yes")
+}
+
+find_pulse_user() {
+    if [[ "$PULSEAUDIO_USER" != "" ]] ; then
+        echo $PULSEAUDIO_USER
+        return 0
+    fi
+    for PULSE_UID in $(ls /run/user) ; do
+        if [ -f /run/user/$PULSE_UID/pulse/pid ] && [ $PULSE_UID -ne 0 ] ; then
+            echo $PULSE_UID
+            return 0
+        fi
+    done
+    return 1
+}
+
+can_set_a2dp() {
+    sleep 1 # PulseAudio needs some time to get into gear
+    UNDERSCORE_MAC=$(echo $1 | sed -e 's/:/_/g')
+    CMD="pactl set-card-profile bluez_card.$UNDERSCORE_MAC a2dp_sink"
+    if [[ "$(whoami)" == "root" ]] ; then
+        PA_USER=$(find_pulse_user)
+        RUNDIR="/run/user/$(id -u $PA_USER)"
+        USER=$(getent passwd $PA_USER | cut -d: -f1)
+        su -c "XDG_RUNTIME_DIR=$RUNDIR $CMD" $USER
+    else
+        $CMD
+    fi
+}
+
+should_reconnect() {
+    is_blacklisted $1 || (whitelist_exists && ! is_whitelisted $1)
+    if [ $? -eq 0 ] ; then
+        return 1
+    fi
+    is_headset $1 && ! can_set_a2dp $1
+}
+
+if [ ! -e "$CONFIG" ] ; then
+    echo "WARNING: configuration file $CONFIG does not exist."
+fi
+. $CONFIG
+
+if [[ "$1" == "auto" ]] && [[ "$AUTORUN" != "yes" ]] ; then
+    echo "Autorun disabled; exiting."
+    exit 0
+fi
+
+MACS=$(bluetoothctl devices | awk '{print $2}')
+
+for MAC in $MACS ; do
+    should_reconnect $MAC && reconnect_device $MAC
+done
