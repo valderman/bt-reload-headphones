@@ -19,8 +19,10 @@ Installation
 ------------
 
 ### For Debian, Ubuntu, Mint, other Debian-based
-Download the `.deb` file, then install it as you normally would:
-`sudo dpkg -i bt-reload-headphones_<version>.deb`
+Download
+[the `.deb` file](https://github.com/valderman/bt-reload-headphones/releases/latest),
+then install it as any other package:
+`sudo dpkg -i <the .deb file>`
 
 ### For other distributions
 Clone the repository, run `make`, then run `sudo make install`.
