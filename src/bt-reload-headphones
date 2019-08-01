@@ -29,7 +29,7 @@ whitelist_exists() {
 }
 
 is_headset() {
-    BTINFO=$(bluetoothctl info $1)
+    local BTINFO=$(bluetoothctl info $1)
     (echo $BTINFO | grep -q "UUID: Audio Sink") && (echo $BTINFO | grep -q "Icon: audio-card") && (echo $BTINFO | grep -q "Connected: yes")
 }
 
@@ -47,17 +47,21 @@ find_pulse_user() {
     return 1
 }
 
+has_a2dp_sink() {
+    grep -A20 bluez_card.$1 | egrep ^\\s+a2dp_sink | grep -q 'available: yes'
+}
+
 can_set_a2dp() {
     sleep 1 # PulseAudio needs some time to get into gear
-    UNDERSCORE_MAC=$(echo $1 | sed -e 's/:/_/g')
-    CMD="pactl set-card-profile bluez_card.$UNDERSCORE_MAC a2dp_sink"
+    local MAC=$(echo $1 | sed -e 's/:/_/g')
+    local LIST_CARDS="/usr/bin/pactl list cards"
     if [[ "$(whoami)" == "root" ]] ; then
         PA_USER=$(find_pulse_user)
         RUNDIR="/run/user/$(id -u $PA_USER)"
         USER=$(getent passwd $PA_USER | cut -d: -f1)
-        su -c "XDG_RUNTIME_DIR=$RUNDIR $CMD" $USER
+        su -c "XDG_RUNTIME_DIR=$RUNDIR $LIST_CARDS" $USER | has_a2dp_sink $MAC
     else
-        $CMD
+        $LIST_CARDS | has_a2dp_sink $MAC
     fi
 }
 

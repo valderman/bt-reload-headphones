@@ -2,7 +2,7 @@
 .EXPORT_ALL_VARIABLES:
 
 # Package version; sync with debian/control
-VERSION ?= 0.1
+VERSION ?= 0.2
 BINDIR ?= /usr/local/bin
 
 RULES=70-bt-reload-headphones.rules
