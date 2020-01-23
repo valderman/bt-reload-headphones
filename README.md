@@ -19,7 +19,16 @@ Installation
 ------------
 
 ### For Debian, Ubuntu, Mint, other Debian-based
-Download
+Add my Debian repository to your sources, then install the package with `apt`:
+
+```
+echo deb https://deb.ekblad.cc/ubuntu disco main | sudo tee /etc/apt/sources.list.d/ekblad-cc-disco
+wget -O - https://ekblad.cc/key.asc | sudo apt-key add -
+sudo apt update
+sudo apt install bt-reload-headphones
+```
+
+You can also download
 [the `.deb` file](https://github.com/valderman/bt-reload-headphones/releases/latest),
 then install it as any other package:
 `sudo dpkg -i <the .deb file>`
