@@ -22,7 +22,7 @@ Installation
 Add my Debian repository to your sources, then install the package with `apt`:
 
 ```
-echo deb https://deb.ekblad.cc/ubuntu disco main | sudo tee /etc/apt/sources.list.d/ekblad-cc-disco
+echo deb https://deb.ekblad.cc/ubuntu disco main | sudo tee /etc/apt/sources.list.d/ekblad-cc-disco.list
 wget -O - https://ekblad.cc/key.asc | sudo apt-key add -
 sudo apt update
 sudo apt install bt-reload-headphones
