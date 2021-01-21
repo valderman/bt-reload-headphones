@@ -2,8 +2,6 @@
 CONFIG=/etc/bt-reload-headphones.conf
 
 reconnect_device() {
-    bluetoothctl --timeout 5 disconnect $1
-    sleep 1
     bluetoothctl --timeout 10 connect $1
 }
 
@@ -70,7 +68,7 @@ should_reconnect() {
     if [ $? -eq 0 ] ; then
         return 1
     fi
-    is_headset $1 && ! can_set_a2dp $1
+    is_headset $1
 }
 
 if [ ! -e "$CONFIG" ] ; then
@@ -86,5 +84,7 @@ fi
 MACS=$(bluetoothctl devices | awk '{print $2}')
 
 for MAC in $MACS ; do
-    should_reconnect $MAC && reconnect_device $MAC
+    for COUNT in {1..10} ; do
+        should_reconnect $MAC && reconnect_device $MAC
+    done
 done
